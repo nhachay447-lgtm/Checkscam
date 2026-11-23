@@ -1,1 +1,1540 @@
 
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hệ thống cảnh báo giao dịch</title>
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --card: #ffffff;
+      --text: #18191c;
+      --muted: #6b7280;
+      --red: #e11d2a;
+      --red-dark: #b91c1c;
+      --border: #e5e7eb;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --amber: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: #e5e7eb;
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 440px;
+      background: var(--bg);
+      min-height: 100vh;
+      padding-bottom: 86px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+      position: relative;
+    }
+
+    .topbar {
+      background: #fff;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topbar-title-wrap {
+      line-height: 1.2;
+    }
+
+    .topbar-title {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .topbar-domain {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .admin-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #f9fafb;
+      color: #374151;
+      cursor: pointer;
+    }
+
+    .admin-pill.is-admin {
+      background: #dcfce7;
+      color: #166534;
+      border-color: #86efac;
+    }
+
+    .hero {
+      background: #fff;
+      padding: 20px 16px 24px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .lock-icon {
+      width: 46px;
+      height: 54px;
+      margin: 0 auto 12px;
+      background: var(--red);
+      border-radius: 8px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lock-icon::before {
+      content: "";
+      position: absolute;
+      top: -15px;
+      width: 26px;
+      height: 20px;
+      border: 6px solid var(--red);
+      border-bottom: none;
+      border-radius: 14px 14px 0 0;
+    }
+
+    .lock-keyhole {
+      width: 8px;
+      height: 14px;
+      background: #fff;
+      border-radius: 6px;
+    }
+
+    .hero h1 {
+      color: var(--red);
+      font-size: 24px;
+      line-height: 1.25;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .stats {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #374151;
+      margin-bottom: 10px;
+    }
+
+    .stats span.num {
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .pending-link {
+      color: var(--red);
+      font-weight: 800;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .sub-slogan {
+      font-size: 13px;
+      color: #4b5563;
+      margin-bottom: 16px;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 4px 10px 4px 14px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+
+    .search-box input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      padding: 8px 6px;
+      background: transparent;
+    }
+
+    .search-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 6px;
+      color: #374151;
+    }
+
+    .app-install-note {
+      margin-top: 12px;
+      color: var(--red);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .section {
+      padding: 16px 14px;
+    }
+
+    .section-heading {
+      text-align: center;
+      color: var(--blue);
+      font-weight: 800;
+      font-size: 15px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      letter-spacing: 0.3px;
+    }
+
+    /* Thanh duyệt cho Admin */
+    .admin-bar {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    .admin-bar-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #92400e;
+    }
+
+    .admin-filter-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .filter-chip {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .filter-chip.active {
+      background: var(--red);
+      color: #fff;
+      border-color: var(--red);
+    }
+
+    .report-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .report-card.pending-card {
+      border-left: 4px solid var(--amber);
+      background: #fffdf7;
+    }
+
+    .report-title {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      word-break: break-word;
+    }
+
+    .report-desc {
+      font-size: 13px;
+      color: #374151;
+      margin-bottom: 8px;
+      line-height: 1.45;
+    }
+
+    .proof-thumbs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .proof-thumbs img {
+      width: 64px;
+      height: 64px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .report-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12.5px;
+      color: var(--muted);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge-tag {
+      background: #fee2e2;
+      color: var(--red-dark);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    .badge-pending {
+      background: #fef3c7;
+      color: #92400e;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .amount-pill {
+      background: #fef9c3;
+      color: #854d0e;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .admin-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .btn-approve {
+      flex: 1;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      padding: 8px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 12.5px;
+      cursor: pointer;
+    }
+
+    .btn-reject {
+      flex: 1;
+      background: #fee2e2;
+      color: #991b1b;
+      border: none;
+      padding: 8px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 12.5px;
+      cursor: pointer;
+    }
+
+    /* Bản Tin CS */
+    .news-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .news-header h2 {
+      color: var(--blue);
+      font-size: 17px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .btn-admin-post {
+      background: var(--red);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .news-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    .news-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .news-badge {
+      background: #fef2f2;
+      color: var(--red);
+      border: 1px solid #fecaca;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .news-title {
+      font-size: 15.5px;
+      font-weight: 800;
+      color: #111827;
+      margin-bottom: 6px;
+      line-height: 1.35;
+    }
+
+    .news-target {
+      font-size: 13px;
+      color: var(--red-dark);
+      font-weight: 700;
+      background: #fff5f5;
+      padding: 6px 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      word-break: break-all;
+    }
+
+    .news-content {
+      font-size: 13.5px;
+      color: #374151;
+      line-height: 1.55;
+      white-space: pre-line;
+      margin-bottom: 10px;
+    }
+
+    .news-image {
+      width: 100%;
+      max-height: 220px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 10px;
+    }
+
+    .del-btn {
+      background: #fee2e2;
+      color: #991b1b;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Form */
+    .report-form-box {
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px 14px;
+      border: 1px solid var(--border);
+    }
+
+    .form-header-lock {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .form-header-lock h2 {
+      color: var(--blue);
+      font-size: 18px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      padding: 10px 6px;
+      border: none;
+      background: transparent;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      color: #374151;
+      border-radius: 6px 6px 0 0;
+    }
+
+    .tab-btn.active {
+      background: var(--red);
+      color: #fff;
+    }
+
+    .tab-intro-title {
+      text-align: center;
+      font-weight: 800;
+      font-size: 14px;
+      color: #1f2937;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .tab-intro-desc {
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 13px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13.5px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #1f2937;
+    }
+
+    .req {
+      color: var(--red);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    .upload-box {
+      display: block;
+      border: 1.5px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+      background: #f9fafb;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13.5px;
+      color: #374151;
+    }
+
+    .preview-grid {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .preview-grid img {
+      width: 72px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--red);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 60;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 400px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-head h3 {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--red);
+    }
+
+    .modal-close {
+      background: #f3f4f6;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 440px;
+      background: #fff;
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+      padding: 6px 4px 8px;
+      z-index: 30;
+    }
+
+    .nav-item {
+      border: none;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      color: #4b5563;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .nav-item.active {
+      color: var(--red);
+    }
+
+    .nav-plus-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: -22px;
+    }
+
+    .nav-plus-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: var(--red);
+      color: #fff;
+      border: 3px solid #fff;
+      font-size: 26px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(225, 29, 42, 0.35);
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .toast {
+      position: fixed;
+      top: 64px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111827;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      z-index: 90;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="topbar-left">
+        <span>✕</span>
+        <span>⌄</span>
+        <div class="topbar-title-wrap">
+          <div class="topbar-title" id="topTitle">[ CHECKSCAM.VN ]</div>
+          <div class="topbar-domain">checkscam.vn</div>
+        </div>
+      </div>
+      <button type="button" id="adminStatusBtn" class="admin-pill" onclick="openAdminAuth()">
+        🔒 Admin
+      </button>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- MÀN HÌNH TRANG CHỦ -->
+    <div id="view-home">
+      <div class="hero">
+        <div class="lock-icon"><div class="lock-keyhole"></div></div>
+        <h1>Hệ thống<br />cảnh báo giao dịch</h1>
+        <p class="stats">
+          Hiện có <span class="num" id="statApproved">93.501</span> Stk, Zalo &amp;
+          <span class="num">26.348</span> ID FB, Tiktok Scam,
+          <span class="num">10.709</span> bình luận,
+          <span class="num pending-link" id="statPending" onclick="jumpToPending()">0</span> cảnh báo chờ duyệt
+        </p>
+        <p class="sub-slogan">Sẽ giúp bạn mua bán an toàn hơn khi online !!!</p>
+
+        <div class="search-box">
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Nhập Tên, số Zalo, Stk, Link Web, F..."
+            oninput="renderReports()"
+          />
+          <button class="search-btn" type="button" onclick="renderReports()">🔍</button>
+        </div>
+
+        <p class="app-install-note">Cài đặt app cảnh báo các website lừa đảo !!!</p>
+      </div>
+
+      <div class="section">
+        <!-- BẢNG DUYỆT TỐ CÁO CHỈ HIỆN KHI ADMIN ĐĂNG NHẬP -->
+        <div id="adminQueuePanel" class="admin-bar hidden">
+          <div class="admin-bar-top">
+            <span>🛡️ Bảng kiểm duyệt Admin</span>
+            <span id="queueBadge">0 chờ duyệt</span>
+          </div>
+          <div class="admin-filter-tabs">
+            <button type="button" id="tabApproved" class="filter-chip active" onclick="setReportFilter('approved')">
+              Đã duyệt (Công khai)
+            </button>
+            <button type="button" id="tabPending" class="filter-chip" onclick="setReportFilter('pending')">
+              Chờ duyệt (<span id="pendingTabNum">0</span>)
+            </button>
+          </div>
+        </div>
+
+        <div class="section-heading" id="listHeading">DANH SÁCH CẢNH BÁO ĐÃ DUYỆT</div>
+        <div id="reportList"></div>
+      </div>
+    </div>
+
+    <!-- MÀN HÌNH BẢN TIN CS -->
+    <div id="view-news" class="section hidden">
+      <div class="news-header">
+        <h2>📰 Bản Tin CS</h2>
+        <button type="button" id="btnOpenNewsPost" class="btn-admin-post hidden" onclick="openNewsModal()">
+          ＋ Đăng bản tin
+        </button>
+      </div>
+
+      <div class="search-box" style="margin-bottom: 14px;">
+        <input
+          id="newsSearchInput"
+          type="text"
+          placeholder="Tìm trong bản tin scam..."
+          oninput="renderNews()"
+        />
+        <button class="search-btn" type="button" onclick="renderNews()">🔍</button>
+      </div>
+
+      <div id="newsList"></div>
+    </div>
+
+    <!-- MÀN HÌNH TỐ CÁO LỪA ĐẢO -->
+    <div id="view-report" class="section hidden">
+      <div class="report-form-box">
+        <div class="form-header-lock">
+          <div class="lock-icon"><div class="lock-keyhole"></div></div>
+          <h2>Điền thông tin tố cáo</h2>
+        </div>
+
+        <div class="tabs">
+          <button type="button" class="tab-btn" data-tab="stk" onclick="switchTab('stk')">STK Scam</button>
+          <button type="button" class="tab-btn active" data-tab="web" onclick="switchTab('web')">Web Scam</button>
+          <button type="button" class="tab-btn" data-tab="acc" onclick="switchTab('acc')">Acc bị Back</button>
+        </div>
+
+        <div id="tab-desc-title" class="tab-intro-title">Bạn biết một website lừa đảo?</div>
+        <p id="tab-desc-text" class="tab-intro-desc">
+          Bạn gửi tố cáo đường link các website lừa đảo, giả mạo thương hiệu, đa cấp trá hình,
+          phát tán virus, keylogger, fake app lừa đảo. Hệ thống sẽ ngăn chặn và cảnh báo tới người dùng
+        </p>
+
+        <form id="scamForm" onsubmit="submitReport(event)">
+          <div class="form-group">
+            <label id="targetLabel" for="targetInput">Link Website <span class="req">*</span></label>
+            <input
+              id="targetInput"
+              class="form-control"
+              type="text"
+              placeholder="Link website lừa đảo"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="categorySelect">Thể loại lừa đảo <span class="req">*</span></label>
+            <select id="categorySelect" class="form-control" required>
+              <option value="">Thể loại</option>
+              <option value="Giả mạo thương hiệu">Giả mạo thương hiệu</option>
+              <option value="Phát tán virus / keylogger">Phát tán virus / keylogger</option>
+              <option value="Fake app / thanh toán ảo">Fake app / thanh toán ảo</option>
+              <option value="Lừa đảo chuyển khoản / cọc">Lừa đảo chuyển khoản / cọc</option>
+              <option value="Back acc / chiếm đoạt tài khoản">Back acc / chiếm đoạt tài khoản</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="amountInput">Số tiền / Mức thiệt hại (tuỳ chọn)</label>
+            <input id="amountInput" class="form-control" type="text" placeholder="Ví dụ: 600k" />
+          </div>
+
+          <div class="form-group">
+            <label for="descInput">Chi tiết sự việc <span class="req">*</span></label>
+            <textarea
+              id="descInput"
+              class="form-control"
+              rows="3"
+              placeholder="Mô tả rõ nội dung giao dịch, cách thức lừa đảo để Admin duyệt nhanh..."
+              required
+            ></textarea>
+          </div>
+
+          <label class="upload-box" for="proofInput">
+            ＋ Tải bằng chứng (png, jpg, gif - tối đa 3 ảnh)
+            <input
+              id="proofInput"
+              type="file"
+              accept=".png,.jpg,.jpeg,.gif,image/png,image/jpeg,image/gif"
+              multiple
+              class="hidden"
+              onchange="handleProofUpload(this)"
+            />
+          </label>
+          <div id="previewGrid" class="preview-grid"></div>
+
+          <button type="submit" class="submit-btn">Gửi tố cáo chờ Admin duyệt</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MÀN HÌNH PHỤ -->
+    <div id="view-info" class="section hidden">
+      <div class="report-form-box">
+        <h2 id="infoTitle" style="margin-bottom: 10px; color: var(--blue);">Tele Check</h2>
+        <p id="infoBody" style="font-size: 14px; line-height: 1.6; color: #374151;"></p>
+      </div>
+    </div>
+
+    <!-- MODAL ĐĂNG NHẬP ADMIN -->
+    <div id="loginModal" class="modal-backdrop hidden" onclick="closeModalByBg(event, 'loginModal')">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3>🔐 Đăng nhập Quản Trị Viên</h3>
+          <button type="button" class="modal-close" onclick="closeModal('loginModal')">✕</button>
+        </div>
+        <form onsubmit="handleAdminLogin(event)">
+          <div class="form-group">
+            <label for="adminEmail">Email Admin</label>
+            <input id="adminEmail" class="form-control" type="email" placeholder="admin@domain.com" required />
+          </div>
+          <div class="form-group">
+            <label for="adminPass">Mật khẩu</label>
+            <input id="adminPass" class="form-control" type="password" placeholder="••••••••" required />
+          </div>
+          <p id="demoHint" style="font-size: 12px; color: #6b7280; margin-bottom: 10px;"></p>
+          <button type="submit" class="submit-btn">Đăng nhập Admin</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL ĐĂNG BẢN TIN CHO ADMIN -->
+    <div id="newsModal" class="modal-backdrop hidden" onclick="closeModalByBg(event, 'newsModal')">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3>🛡️ Đăng Bản Tin Cảnh Báo Scam</h3>
+          <button type="button" class="modal-close" onclick="closeModal('newsModal')">✕</button>
+        </div>
+
+        <form id="adminNewsForm" onsubmit="submitNewsPost(event)">
+          <div class="form-group">
+            <label for="newsType">Phân loại cảnh báo <span class="req">*</span></label>
+            <select id="newsType" class="form-control" required>
+              <option value="Cảnh báo Web Scam">Cảnh báo Web Scam</option>
+              <option value="Cảnh báo STK / Zalo Scam">Cảnh báo STK / Zalo Scam</option>
+              <option value="Cảnh báo Acc bị Back">Cảnh báo Acc bị Back</option>
+              <option value="Thủ đoạn lừa đảo mới">Thủ đoạn lừa đảo mới</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="newsTitle">Tiêu đề bài đăng <span class="req">*</span></label>
+            <input id="newsTitle" class="form-control" type="text" placeholder="Tiêu đề cảnh báo..." required />
+          </div>
+
+          <div class="form-group">
+            <label for="newsTarget">Đối tượng / STK / Link Scam <span class="req">*</span></label>
+            <input id="newsTarget" class="form-control" type="text" placeholder="STK / Link / SĐT vi phạm" required />
+          </div>
+
+          <div class="form-group">
+            <label for="newsAmount">Thiệt hại ghi nhận</label>
+            <input id="newsAmount" class="form-control" type="text" placeholder="Ví dụ: 1.500k" />
+          </div>
+
+          <div class="form-group">
+            <label for="newsBody">Nội dung cảnh báo chi tiết <span class="req">*</span></label>
+            <textarea id="newsBody" class="form-control" rows="4" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="upload-box" for="newsImageInput">
+              ＋ Đính kèm ảnh bằng chứng
+              <input id="newsImageInput" type="file" accept="image/*" class="hidden" onchange="handleNewsImage(this)" />
+            </label>
+            <div id="newsImagePreview" class="preview-grid"></div>
+          </div>
+
+          <button type="submit" class="submit-btn">Đăng lên Bản Tin CS</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- THANH ĐIỀU HƯỚNG DƯỚI CÙNG -->
+    <nav class="bottom-nav">
+      <button type="button" class="nav-item active" id="nav-home" onclick="switchView('home')">
+        <span>🏠</span>
+        <span>Trang Chủ</span>
+      </button>
+
+      <button type="button" class="nav-item" id="nav-news" onclick="switchView('news')">
+        <span>📰</span>
+        <span>Bản Tin CS</span>
+      </button>
+
+      <div class="nav-plus-wrap">
+        <button type="button" class="nav-plus-btn" onclick="switchView('report')" aria-label="Tố Cáo Lừa Đảo">+</button>
+        <span style="font-size: 11px; font-weight: 700; color: var(--red); margin-top: 2px;">Tố Cáo Lừa Đảo</span>
+      </div>
+
+      <button type="button" class="nav-item" id="nav-tele" onclick="openInfo('Tele Check', 'Kênh tra cứu nhanh và nhận cảnh báo tự động qua Telegram.')">
+        <span>✈️</span>
+        <span>Tele Check</span>
+      </button>
+
+      <button type="button" class="nav-item" id="nav-dis" onclick="openInfo('Dis Check', 'Cộng đồng trao đổi, đối chiếu bằng chứng và hỗ trợ kiểm tra giao dịch qua Discord.')">
+        <span>👾</span>
+        <span>Dis Check</span>
+      </button>
+    </nav>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      updateDoc,
+      deleteDoc,
+      doc,
+      onSnapshot,
+      query,
+      orderBy,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    // =========================================================================
+    // DÁN CẤU HÌNH FIREBASE CỦA BẠN VÀO ĐÂY ĐỂ CHẠY ONLINE CHO TẤT CẢ MỌI NGƯỜI
+    // =========================================================================
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const isFirebaseConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+
+    // Tài khoản dự phòng khi bạn chưa dán firebaseConfig (để test ngay trên máy)
+    const LOCAL_ADMIN_EMAIL = "admin@checkscam.vn";
+    const LOCAL_ADMIN_PASS = "123456";
+
+    let auth = null;
+    let db = null;
+    let isAdmin = false;
+    let reportFilter = "approved"; // 'approved' | 'pending'
+    let currentTab = "web";
+    let uploadedProofs = [];
+    let pendingNewsImageBase64 = "";
+
+    let allReports = [
+      {
+        id: "demo-1",
+        target: "Nguyen Dinh Thien P.",
+        tabLabel: "STK Scam",
+        category: "Lừa đảo chuyển khoản / cọc",
+        amount: "600k",
+        detail: "Nhận cọc nhưng chặn liên lạc.",
+        proofs: [],
+        status: "approved",
+        dateStr: "23/11/2026",
+        views: 154
+      }
+    ];
+
+    let allNews = [
+      {
+        id: "news-1",
+        type: "Cảnh báo Web Scam",
+        title: "Cảnh báo website giả mạo trung gian giao dịch",
+        target: "trunggian-fake[.]vn",
+        amount: "2.400k",
+        dateStr: "23/11/2026 14:30",
+        views: 312,
+        content: "Kiểm tra kỹ tên miền chính thức trước khi chuyển khoản.",
+        image: ""
+      }
+    ];
+
+    const tabConfig = {
+      stk: {
+        title: "Bạn biết một STK lừa đảo?",
+        desc: "Gửi tố cáo số tài khoản ngân hàng, ví điện tử hoặc số Zalo có hành vi chiếm đoạt tiền giao dịch online.",
+        label: "Số tài khoản / Zalo",
+        placeholder: "Nhập số STK hoặc số Zalo lừa đảo"
+      },
+      web: {
+        title: "Bạn biết một website lừa đảo?",
+        desc: "Bạn gửi tố cáo đường link các website lừa đảo, giả mạo thương hiệu, đa cấp trá hình, phát tán virus, keylogger, fake app lừa đảo.",
+        label: "Link Website",
+        placeholder: "Link website lừa đảo"
+      },
+      acc: {
+        title: "Tài khoản bị back / chiếm đoạt?",
+        desc: "Gửi tố cáo trường hợp bán tài khoản game/mạng xã hội rồi thu hồi (back) sau giao dịch.",
+        label: "Link / ID Tài khoản bị Back",
+        placeholder: "Nhập link FB, TikTok hoặc ID tài khoản"
+      }
+    };
+
+    // Nén ảnh nhẹ để lưu trực tiếp vào Firestore miễn phí (không tốn phí Storage)
+    function compressImage(file, maxWidth = 720, quality = 0.72) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const scale = Math.min(1, maxWidth / img.width);
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.remove("hidden");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => el.classList.add("hidden"), 2600);
+    }
+
+    function updateAdminState(loggedIn) {
+      isAdmin = loggedIn;
+      const btn = document.getElementById("adminStatusBtn");
+      const queuePanel = document.getElementById("adminQueuePanel");
+      const newsPostBtn = document.getElementById("btnOpenNewsPost");
+
+      if (isAdmin) {
+        btn.textContent = "🟢 Admin ON";
+        btn.classList.add("is-admin");
+        queuePanel.classList.remove("hidden");
+        newsPostBtn.classList.remove("hidden");
+      } else {
+        btn.textContent = "🔒 Admin";
+        btn.classList.remove("is-admin");
+        queuePanel.classList.add("hidden");
+        newsPostBtn.classList.add("hidden");
+        reportFilter = "approved";
+      }
+      renderReports();
+      renderNews();
+    }
+
+    if (isFirebaseConfigured) {
+      const app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+
+      onAuthStateChanged(auth, (user) => updateAdminState(!!user));
+
+      onSnapshot(query(collection(db, "reports"), orderBy("createdAt", "desc")), (snap) => {
+        allReports = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        renderReports();
+      });
+
+      onSnapshot(query(collection(db, "news"), orderBy("createdAt", "desc")), (snap) => {
+        allNews = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        renderNews();
+      });
+    } else {
+      document.getElementById("demoHint").textContent =
+        "Chế độ test nội bộ (chưa dán Firebase Config): admin@checkscam.vn / 123456";
+      const savedR = localStorage.getItem("cs_reports_v2");
+      const savedN = localStorage.getItem("cs_news_v2");
+      if (savedR) allReports = JSON.parse(savedR);
+      if (savedN) allNews = JSON.parse(savedN);
+    }
+
+    window.openAdminAuth = async function () {
+      if (isAdmin) {
+        if (!confirm("Đăng xuất khỏi quyền Admin?")) return;
+        if (isFirebaseConfigured) await signOut(auth);
+        else updateAdminState(false);
+        showToast("Đã đăng xuất Admin");
+        return;
+      }
+      document.getElementById("loginModal").classList.remove("hidden");
+    };
+
+    window.handleAdminLogin = async function (e) {
+      e.preventDefault();
+      const email = document.getElementById("adminEmail").value.trim();
+      const pass = document.getElementById("adminPass").value.trim();
+
+      if (isFirebaseConfigured) {
+        try {
+          await signInWithEmailAndPassword(auth, email, pass);
+          closeModal("loginModal");
+          showToast("Đăng nhập Admin thành công!");
+        } catch (err) {
+          showToast("Sai tài khoản hoặc mật khẩu Admin!");
+        }
+      } else {
+        if (email === LOCAL_ADMIN_EMAIL && pass === LOCAL_ADMIN_PASS) {
+          updateAdminState(true);
+          closeModal("loginModal");
+          showToast("Đã bật chế độ Admin!");
+        } else {
+          showToast("Sai thông tin đăng nhập!");
+        }
+      }
+    };
+
+    window.closeModal = function (id) {
+      document.getElementById(id).classList.add("hidden");
+    };
+
+    window.closeModalByBg = function (e, id) {
+      if (e.target.id === id) closeModal(id);
+    };
+
+    window.setReportFilter = function (filter) {
+      reportFilter = filter;
+      document.getElementById("tabApproved").classList.toggle("active", filter === "approved");
+      document.getElementById("tabPending").classList.toggle("active", filter === "pending");
+      document.getElementById("listHeading").textContent =
+        filter === "pending" ? "DANH SÁCH TỐ CÁO CHỜ ADMIN DUYỆT" : "DANH SÁCH CẢNH BÁO ĐÃ DUYỆT";
+      renderReports();
+    };
+
+    window.jumpToPending = function () {
+      if (!isAdmin) {
+        showToast("Chỉ Admin mới xem và duyệt được mục này!");
+        openAdminAuth();
+        return;
+      }
+      switchView("home");
+      setReportFilter("pending");
+    };
+
+    window.approveReport = async function (id) {
+      if (!isAdmin) return;
+      if (isFirebaseConfigured) {
+        await updateDoc(doc(db, "reports", id), { status: "approved" });
+      } else {
+        allReports = allReports.map((r) => (r.id === id ? { ...r, status: "approved" } : r));
+        localStorage.setItem("cs_reports_v2", JSON.stringify(allReports));
+        renderReports();
+      }
+      showToast("✅ Đã duyệt và hiển thị công khai!");
+    };
+
+    window.rejectReport = async function (id) {
+      if (!isAdmin) return;
+      if (!confirm("Từ chối và xoá đơn tố cáo này?")) return;
+      if (isFirebaseConfigured) {
+        await deleteDoc(doc(db, "reports", id));
+      } else {
+        allReports = allReports.filter((r) => r.id !== id);
+        localStorage.setItem("cs_reports_v2", JSON.stringify(allReports));
+        renderReports();
+      }
+      showToast("🗑️ Đã xoá đơn tố cáo");
+    };
+
+    window.handleProofUpload = async function (input) {
+      const grid = document.getElementById("previewGrid");
+      grid.innerHTML = "";
+      uploadedProofs = [];
+      const files = Array.from(input.files || []).slice(0, 3);
+      for (const file of files) {
+        const b64 = await compressImage(file);
+        uploadedProofs.push(b64);
+        const img = document.createElement("img");
+        img.src = b64;
+        grid.appendChild(img);
+      }
+    };
+
+    window.submitReport = async function (e) {
+      e.preventDefault();
+      const target = document.getElementById("targetInput").value.trim();
+      const category = document.getElementById("categorySelect").value;
+      const amount = document.getElementById("amountInput").value.trim() || "Chưa rõ";
+      const detail = document.getElementById("descInput").value.trim();
+
+      if (!target || !category) return;
+
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      const dateStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
+
+      const payload = {
+        target,
+        tabLabel: tabConfig[currentTab].label,
+        category,
+        amount,
+        detail,
+        proofs: uploadedProofs,
+        status: "pending", // Luôn chờ Admin duyệt trước
+        dateStr,
+        views: 1
+      };
+
+      if (isFirebaseConfigured) {
+        await addDoc(collection(db, "reports"), { ...payload, createdAt: serverTimestamp() });
+      } else {
+        allReports.unshift({ id: "r-" + Date.now(), ...payload });
+        localStorage.setItem("cs_reports_v2", JSON.stringify(allReports));
+        renderReports();
+      }
+
+      document.getElementById("scamForm").reset();
+      document.getElementById("previewGrid").innerHTML = "";
+      uploadedProofs = [];
+      switchView("home");
+      showToast("Đã gửi tố cáo! Đang chờ Admin kiểm duyệt.");
+    };
+
+    window.openNewsModal = function () {
+      if (!isAdmin) return;
+      document.getElementById("newsModal").classList.remove("hidden");
+    };
+
+    window.handleNewsImage = async function (input) {
+      const preview = document.getElementById("newsImagePreview");
+      preview.innerHTML = "";
+      pendingNewsImageBase64 = "";
+      const file = input.files && input.files[0];
+      if (!file) return;
+      pendingNewsImageBase64 = await compressImage(file, 800, 0.75);
+      const img = document.createElement("img");
+      img.src = pendingNewsImageBase64;
+      preview.appendChild(img);
+    };
+
+    window.submitNewsPost = async function (e) {
+      e.preventDefault();
+      if (!isAdmin) return;
+
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      const dateStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(
+        now.getHours()
+      )}:${pad(now.getMinutes())}`;
+
+      const post = {
+        type: document.getElementById("newsType").value,
+        title: document.getElementById("newsTitle").value.trim(),
+        target: document.getElementById("newsTarget").value.trim(),
+        amount: document.getElementById("newsAmount").value.trim(),
+        content: document.getElementById("newsBody").value.trim(),
+        image: pendingNewsImageBase64,
+        dateStr,
+        views: 1
+      };
+
+      if (isFirebaseConfigured) {
+        await addDoc(collection(db, "news"), { ...post, createdAt: serverTimestamp() });
+      } else {
+        allNews.unshift({ id: "n-" + Date.now(), ...post });
+        localStorage.setItem("cs_news_v2", JSON.stringify(allNews));
+        renderNews();
+      }
+
+      document.getElementById("adminNewsForm").reset();
+      document.getElementById("newsImagePreview").innerHTML = "";
+      pendingNewsImageBase64 = "";
+      closeModal("newsModal");
+      showToast("Đã đăng lên Bản Tin CS!");
+    };
+
+    window.deleteNewsPost = async function (id) {
+      if (!isAdmin || !confirm("Xoá bài bản tin này?")) return;
+      if (isFirebaseConfigured) {
+        await deleteDoc(doc(db, "news", id));
+      } else {
+        allNews = allNews.filter((n) => n.id !== id);
+        localStorage.setItem("cs_news_v2", JSON.stringify(allNews));
+        renderNews();
+      }
+      showToast("Đã xoá bài bản tin");
+    };
+
+    window.renderReports = function () {
+      const pendingList = allReports.filter((r) => r.status === "pending");
+      const approvedList = allReports.filter((r) => r.status === "approved");
+
+      document.getElementById("statPending").textContent = pendingList.length;
+      document.getElementById("queueBadge").textContent = `${pendingList.length} chờ duyệt`;
+      document.getElementById("pendingTabNum").textContent = pendingList.length;
+
+      const activePool = isAdmin && reportFilter === "pending" ? pendingList : approvedList;
+      const q = (document.getElementById("searchInput")?.value || "").toLowerCase().trim();
+
+      const filtered = activePool.filter(
+        (item) =>
+          !q ||
+          item.target.toLowerCase().includes(q) ||
+          item.category.toLowerCase().includes(q) ||
+          (item.detail || "").toLowerCase().includes(q)
+      );
+
+      const listEl = document.getElementById("reportList");
+      if (!filtered.length) {
+        listEl.innerHTML = `<div class="report-card" style="text-align:center;color:#6b7280;">${
+          reportFilter === "pending" ? "Không có đơn tố cáo nào đang chờ duyệt." : "Chưa có cảnh báo phù hợp."
+        }</div>`;
+        return;
+      }
+
+      listEl.innerHTML = filtered
+        .map((item, idx) => {
+          const isPending = item.status === "pending";
+          const proofsHtml = (item.proofs || []).length
+            ? `<div class="proof-thumbs">${item.proofs
+                .map((src) => `<img src="${src}" alt="Bằng chứng" onclick="window.open('${src}')" />`)
+                .join("")}</div>`
+            : "";
+
+          const adminControls = isAdmin
+            ? `<div class="admin-actions">
+                ${
+                  isPending
+                    ? `<button type="button" class="btn-approve" onclick="approveReport('${item.id}')">✅ Duyệt công khai</button>`
+                    : ""
+                }
+                <button type="button" class="btn-reject" onclick="rejectReport('${item.id}')">🗑️ ${
+                isPending ? "Từ chối" : "Xoá bài"
+              }</button>
+              </div>`
+            : "";
+
+          return `
+            <div class="report-card ${isPending ? "pending-card" : ""}">
+              <div class="report-title">
+                <span>📝 ${filtered.length - idx}. ${item.target}</span>
+                ${isPending ? `<span class="badge-pending">Chờ duyệt</span>` : ""}
+              </div>
+              ${item.detail ? `<p class="report-desc">${item.detail}</p>` : ""}
+              ${proofsHtml}
+              <div class="report-meta">
+                <span>🕒 ${item.dateStr} · 👁 ${item.views || 1} Lượt xem</span>
+                <span class="amount-pill">💰 ${item.amount}</span>
+              </div>
+              <div style="margin-top:8px;">
+                <span class="badge-tag">${item.tabLabel} · ${item.category}</span>
+              </div>
+              ${adminControls}
+            </div>
+          `;
+        })
+        .join("");
+    };
+
+    window.renderNews = function () {
+      const q = (document.getElementById("newsSearchInput")?.value || "").toLowerCase().trim();
+      const container = document.getElementById("newsList");
+      const filtered = allNews.filter(
+        (n) =>
+          !q ||
+          n.title.toLowerCase().includes(q) ||
+          n.target.toLowerCase().includes(q) ||
+          n.content.toLowerCase().includes(q)
+      );
+
+      if (!filtered.length) {
+        container.innerHTML = `<div class="news-card" style="text-align:center;color:#6b7280;">Chưa có bài đăng nào.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered
+        .map(
+          (item) => `
+          <article class="news-card">
+            <div class="news-top">
+              <span class="news-badge">🚨 ${item.type}</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                ${item.amount ? `<span class="amount-pill">💰 ${item.amount}</span>` : ""}
+                ${
+                  isAdmin
+                    ? `<button type="button" class="del-btn" onclick="deleteNewsPost('${item.id}')">Xoá</button>`
+                    : ""
+                }
+              </div>
+            </div>
+            <h3 class="news-title">${item.title}</h3>
+            <div class="news-target">⚠️ Đối tượng: ${item.target}</div>
+            <p class="news-content">${item.content}</p>
+            ${item.image ? `<img class="news-image" src="${item.image}" alt="Bằng chứng" />` : ""}
+            <div class="report-meta">
+              <span>🛡️ Đăng bởi <b>Admin</b> · ${item.dateStr}</span>
+              <span>👁 ${item.views || 1} lượt xem</span>
+            </div>
+          </article>
+        `
+        )
+        .join("");
+    };
+
+    window.switchView = function (view) {
+      document.getElementById("view-home").classList.toggle("hidden", view !== "home");
+      document.getElementById("view-news").classList.toggle("hidden", view !== "news");
+      document.getElementById("view-report").classList.toggle("hidden", view !== "report");
+      document.getElementById("view-info").classList.toggle("hidden", view !== "info");
+
+      document.getElementById("nav-home").classList.toggle("active", view === "home");
+      document.getElementById("nav-news").classList.toggle("active", view === "news");
+
+      const titles = {
+        home: "[ CHECKSCAM.VN ]",
+        news: "[ Bản Tin CS ]",
+        report: "[ Tố Cáo L... ]",
+        info: "[ CHECKSCAM.VN ]"
+      };
+      document.getElementById("topTitle").textContent = titles[view] || "[ CHECKSCAM.VN ]";
+    };
+
+    window.openInfo = function (title, body) {
+      document.getElementById("infoTitle").textContent = title;
+      document.getElementById("infoBody").textContent = body;
+      switchView("info");
+    };
+
+    window.switchTab = function (tab) {
+      currentTab = tab;
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.tab === tab);
+      });
+      const cfg = tabConfig[tab];
+      document.getElementById("tab-desc-title").textContent = cfg.title;
+      document.getElementById("tab-desc-text").textContent = cfg.desc;
+      document.getElementById("targetLabel").innerHTML = `${cfg.label} <span class="req">*</span>`;
+      document.getElementById("targetInput").placeholder = cfg.placeholder;
+    };
+
+    renderReports();
+    renderNews();
+  </script>
+</body>
+</html>
